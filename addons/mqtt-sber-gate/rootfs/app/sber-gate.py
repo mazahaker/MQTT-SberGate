@@ -331,7 +331,7 @@ log("Кодировка: "+ sys.getdefaultencoding())
 #log(": "+ sys.getfilesystemencodeerrors())
 #log(": "+ str(sys.maxunicode))
 
-sys.setdefaultencoding('utf8')
+#sys.setdefaultencoding('utf8')
 print(sys.stdout.encoding)
 
 fOptions='options.json'
