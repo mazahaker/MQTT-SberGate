@@ -28,6 +28,7 @@ options:
   sber-mqtt_login: "mqtt-sber-login"
   sber-mqtt_password: "mqtt-sber-password"
   sber-http_api_endpoint: "https://mqtt-partners.iot.sberdevices.ru"
+  test_filed: "test"
 
 schema:
   ha-api_url: str
