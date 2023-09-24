@@ -254,10 +254,10 @@ def on_disconnect(client, userdata, rc):
         log("Unexpected MQTT disconnection. Will auto-reconnect. rc: "+str(rc))
 
 def on_message(mqttc, obj, msg):
-    log(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+    log("on_message" + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
 def on_publish(mqttc, obj, mid):
-    log("mid: " + str(mid))
+    log("on_publish mid: " + str(mid))
 
 def on_subscribe(mqttc, obj, mid, granted_qos):
     log("SD Subscribed: " + str(mid) + " " + str(granted_qos))
@@ -266,6 +266,7 @@ def on_log(mqttc, obj, level, string):
     log(string)
 
 def send_status(mqttc, s):
+   log("send_status: " + str(s))
    infot = mqttc.publish(sber_root_topic+'/up/status', s, qos=0)
 
 #********************************************
@@ -274,7 +275,7 @@ def on_message_cmd(mqttc, obj, msg):
    data=json.loads(msg.payload)
 #Command: {'devices': {'Relay_03': {'states': [{'key': 'on_off', 'value': {'type': 'BOOL'}}]}}}
    log("Command: " + str(data))
-#   log('DevicesDB: '+str(DevicesDB.DB))
+   log("DevicesDB: " + str(DevicesDB.DB))
    for id,v in data['devices'].items():
       for k in v['states']:
          if k['key'] == 'on_off':
@@ -290,17 +291,17 @@ def on_message_cmd(mqttc, obj, msg):
                val=k['value'].get('bool_value',False)
                log('on_off set to '+str(val))
                DevicesDB.change_state(id,k['key'],val)
-               ha_light(id,val)
+               ha_light(id,val)   
          if k['value']['type'] == 'INTEGER':
             DevicesDB.change_state(id,k['key'],k['value'].get('integer_value',0))
    send_status(mqttc,DevicesDB.do_mqtt_json_states_list([]))
-#   log(DevicesDB.mqtt_json_states_list)
+   log(DevicesDB.mqtt_json_states_list)
 
 def on_message_stat(mqttc, obj, msg):
    data=json.loads(msg.payload).get('devices',[])
    log("GetStatus: "  +  str(msg.payload))
    send_status(mqttc,DevicesDB.do_mqtt_json_states_list(data))
-#   log("Answer: "+DevicesDB.mqtt_json_states_list)
+   log("Answer: "+DevicesDB.mqtt_json_states_list)
 
 
 def on_errors(mqttc, obj, msg):
@@ -330,8 +331,8 @@ log("Кодировка: "+ sys.getdefaultencoding())
 #log(": "+ sys.getfilesystemencodeerrors())
 #log(": "+ str(sys.maxunicode))
 
-#sys.setdefaultencoding('utf8')
-#print(sys.stdout.encoding)
+sys.setdefaultencoding('utf8')
+print(sys.stdout.encoding)
 
 fOptions='options.json'
 fDevicesDB='devices.json'
@@ -393,7 +394,7 @@ mqttc.on_subscribe = on_subscribe
 mqttc.on_message = on_message
 mqttc.on_disconnect = on_disconnect
 # Uncomment to enable debug messages
-#mqttc.on_log = on_log
+mqttc.on_log = on_log
 mqttc.message_callback_add("sberdevices/v1/__config", on_global_conf)
 sber_root_topic='sberdevices/v1/'+Options['sber-mqtt_login']
 stdown=sber_root_topic + "/down"
