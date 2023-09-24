@@ -194,7 +194,7 @@ class CDevicesDB(object):
          if not (d is None):
             s=d.get('States',None)
             if (s is None):
-               log('У объекта: '+id+'отсутствует информация о состояниях')
+               log('У объекта: '+id+'отсутствует информация о состояниях 2')
                self.DB[id]['States']={}
                self.DB[id]['States']['online']=True
             DStat['devices'][id]={}
@@ -287,7 +287,10 @@ def on_message_cmd(mqttc, obj, msg):
             if DevicesDB.DB[id]['entity_type'] == 'scr':
                ha_script(id,True)
             if DevicesDB.DB[id]['entity_type'] == 'light':
-               ha_light(id,True)
+               val=k['value'].get('bool_value',False)
+               log('on_off set to '+str(val))
+               DevicesDB.change_state(id,k['key'],val)
+               ha_light(id,val)
          if k['value']['type'] == 'INTEGER':
             DevicesDB.change_state(id,k['key'],k['value'].get('integer_value',0))
    send_status(mqttc,DevicesDB.do_mqtt_json_states_list([]))
