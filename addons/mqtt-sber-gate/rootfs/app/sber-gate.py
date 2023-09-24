@@ -53,6 +53,15 @@ def ha_switch(id,OnOff):
 #   else:
 #      log(response.status_code)
 
+def ha_light(id,OnOff):
+   log('Отправляем команду в HA для '+id+' ON: '+str(OnOff))
+   if OnOff:
+      url=Options['ha-api_url']+'/api/services/light/turn_on'
+   else:
+      url=Options['ha-api_url']+'/api/services/light/turn_off'
+   hds = {'Authorization': 'Bearer '+Options['ha-api_token'], 'content-type': 'application/json'}
+   response=requests.post(url, json={"entity_id": id}, headers=hds)
+
 def ha_script(id,OnOff):
    log('Отправляем команду в HA для '+id+' ON: '+str(OnOff))
    if OnOff:
@@ -157,6 +166,7 @@ class CDevicesDB(object):
    def do_mqtt_json_devices_list(self):
       model_dict = {
          'relay': {'id': 'model_relay', 'manufacturer': 'Janch', 'model': 'Relay', 'category': 'relay', 'features': ['online','on_off']},
+         'light': {'id': 'model_light', 'manufacturer': 'Janch', 'model': 'Light', 'category': 'light', 'features': ['online','on_off']},
          'ipc': {'id': 'model_ipc', 'manufacturer': 'Janch', 'model': 'IPC', 'category': 'ipc', 'features': ['online','on_off']}
       }
       Dev={}
@@ -276,6 +286,8 @@ def on_message_cmd(mqttc, obj, msg):
                ha_switch(id,val)
             if DevicesDB.DB[id]['entity_type'] == 'scr':
                ha_script(id,True)
+            if DevicesDB.DB[id]['entity_type'] == 'light':
+               ha_light(id,True)
          if k['value']['type'] == 'INTEGER':
             DevicesDB.change_state(id,k['key'],k['value'].get('integer_value',0))
    send_status(mqttc,DevicesDB.do_mqtt_json_states_list([]))
@@ -347,13 +359,18 @@ def upd_scr(id,s):
    attr=s['attributes'].get('friendly_name','')
    log('script: ' + s['entity_id'] + ' '+attr)
    DevicesDB.update(s['entity_id'],{'entity_ha': True,'entity_type': 'scr','friendly_name':attr,'category': 'relay'})
+def upd_light(id,s):
+   attr=s['attributes'].get('friendly_name','')
+   log('script: ' + s['entity_id'] + ' '+attr)
+   DevicesDB.update(s['entity_id'],{'entity_ha': True,'entity_type': 'light','friendly_name':attr,'category': 'light'})
 def upd_default(id,s):
    log('Неиспользуемый тип: ' + s['entity_id'])
 for s in res:
    a,b=s['entity_id'].split('.',1)
    dict={
       'switch': upd_sw,
-      'script': upd_scr
+      'script': upd_scr,
+      'light': upd_light
    }
    dict.get(a, upd_default)(s['entity_id'],s)
 
